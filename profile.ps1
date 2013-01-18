@@ -3,8 +3,8 @@ $global:ComputerName = [System.Net.Dns]::GetHostName();
 
 # extend path correctly...
 # $env:path = "c:\cygwin\bin;$($env:path)"
-# $env:path += ";" + (Get-Item "Env:ProgramFiles(x86)").Value + "\Git\bin"
-$env:path += ";" + (Get-Item "Env:ProgramFiles(x86)").Value + "\Git\cmd"
+$env:path += ";" + (Get-Item "Env:ProgramFiles(x86)").Value + "\Git\cmd" 
+$env:path += ";" + (Get-Item "Env:ProgramFiles(x86)").Value + "\Git\bin"
 
 # set term so "less" does not complain
 $env:TERM="msys"
