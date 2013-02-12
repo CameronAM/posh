@@ -19,7 +19,8 @@ Import-Module Pscx
 Import-Module Posh-Git
 
 # custom aliases
-new-alias which get-command
+new-alias -force which get-command
+new-alias -force help get-help
 
 Set-Location c:\
 
@@ -56,15 +57,31 @@ function prompt(){
 	write-host -nonewline -f $gbhlColour3 "├";
 	
 	$cusorXPos = $host.UI.RawUI.CursorPosition.x;
-	$pathStringLen = $location.Path.Length + 3; # extra 3 for the line art
+
+	# write-host $windowWidth $cusorXPos 
+
+	$modifiedPath = truncatePath $location.Path (($windowWidth - $cusorXPos) - 4);
+
+	#write-host $location.Path;
+	#write-host $modifiedPath;
+
+	$pathStringLen = $modifiedPath.Length + 3; # extra 3 for the line art
 	$paddingLineLength = $windowWidth - ($cusorXPos + $pathStringLen);
+
+	# There might not be enough space to put the path in here, check and shorten in
+	# bits until the path is not to long to fit, stick that in the path location in
+	# the prompt.
+	# Keep shortening, and stick the fully shorted location with last directory in the 
+	# window title.
+
+	# $path = truncatePath($location.Path, )
 
 	# a bar to fill the gap
 	$bar = "─" * ($paddingLineLength - 1);
 	
 	write-host -nonewline -f $gbhlColour3 $bar; 
 	write-host -nonewline -f $gbhlColour3 "┤"; 
-	write-host -nonewline -f $hlColour2 ($location.Path); 
+	write-host -nonewline -f $hlColour2 ($modifiedPath); 
 	write-host -f $gbhlColour3 "├┐"; 
 	
 	write-host -nonewline -f $gbhlColour3 "└ ";
@@ -72,4 +89,35 @@ function prompt(){
 	write-host -nonewline -f $gbhlColour3 ">";
 	
 	return " "
+}
+
+function truncatePath([string]$pathString, [int]$length) {
+    $processedPath = "";
+    
+    if($pathString.Length -gt $length) {
+        $chunks = $pathString.Trim(@("\")).Split("\");
+        
+        # assuming first value is the drive, skip it
+        # don't ever process the last item in the list
+
+        for($i = 1; $i -lt $chunks.Length - 1; $i++) { # -or (($chunks -join "\").Length -le $length
+            $newValue = "";
+
+			$selection = select-string "^.|\.." -input $chunks[$i] -allmatches;
+            foreach($m in $selection.Matches) { 
+				$newValue += $m.Value;
+			}
+            
+            $chunks[$i] = $newValue;
+            
+            if(($chunks -join "\").Length -le $length) { break };
+        }
+        
+        # write-host $length;
+		# write-host ($chunks -join "\");
+
+        return ($chunks -join "\");
+    } else {
+        $pathString;
+    }
 }
