@@ -1,22 +1,35 @@
-﻿$global:CurrentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent();
+﻿"output"
+# write-output "output"
+# write-host "Initing prompt..."
+$PSVersionTable
+
+$global:CurrentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent();
 $global:ComputerName = [System.Net.Dns]::GetHostName();
+
+"1"
 
 # extend path correctly...
 # $env:path = "c:\cygwin\bin;$($env:path)"
 $env:path += ";" + (Get-Item "Env:ProgramFiles(x86)").Value + "\Git\cmd" 
 # $env:path += ";" + (Get-Item "Env:ProgramFiles(x86)").Value + "\Git\bin"
 
+"2"
+
 # set term so "less" does not complain
 $env:TERM="msys"
+
+"3"
 
 # idiotic shared home drive rubish, must make the directory trusted
 Set-Alias CasPol "$([Runtime.InteropServices.RuntimeEnvironment]::GetRuntimeDirectory())CasPol.exe"
 CasPol -polchgprompt off -machine -addgroup 1.2 -url file://P:\WindowsPowerShell\Modules\* FullTrust  | out-null
 
+"4"
+
 # hook up PsGet and PoshGit
-Import-Module PsGet
-Import-Module Pscx
-Import-Module Posh-Git
+# Import-Module PsGet # not needed, use chocolaty
+# Import-Module Pscx # after installing with choco it's on the path and always available
+# Import-Module Posh-Git
 
 # custom aliases
 new-alias -force which get-command
@@ -25,7 +38,7 @@ new-alias -force gh get-help
 
 # Set-Location c:\
 
-function prompt(){ 
+function prompt() { 
 	#colours
 	$gbhlColour3 = 'darkgreen';
 	
@@ -52,8 +65,10 @@ function prompt(){
 	write-host -nonewline -f $gbhlColour3 "┌─┤";
 	write-host -nonewline -f $hlColour3 $userAtHost;
 	
-	# git status
-	Write-VcsStatus;
+    if((get-module Posh-Git)) {
+	   # git status
+	   Write-VcsStatus;
+    }
 	
 	write-host -nonewline -f $gbhlColour3 "├";
 	
@@ -146,4 +161,11 @@ function Invoke-WMSettingChange {
 
     # notify all windows of environment block change
     [win32.nativemethods]::SendMessageTimeout($HWND_BROADCAST, $WM_SETTINGCHANGE, [uintptr]::Zero, "Environment", 2, 5000, [ref]$result);
+}
+
+# Import-Module Posh-Git
+
+function ImportPoshGit(){
+    Import-Module Posh-Git
+    Invoke-SshAgent
 }
